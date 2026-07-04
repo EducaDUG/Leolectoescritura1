@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El Gran Viaje de Leo — Aprende a Leer y Escribir</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EAF6FF;
+    --bg-soft:#F5FBFF;
+    --card:#FFFFFF;
+    --ink:#16213E;
+    --ink-soft:#5B6B8C;
+    --primary:#2F80ED;
+    --primary-dark:#1C5FC4;
+    --sun:#FFC93C;
+    --sun-dark:#E0A800;
+    --coral:#FF6B6B;
+    --coral-dark:#E14B4B;
+    --leaf:#33C481;
+    --leaf-dark:#22A06B;
+    --purple:#8E6BFF;
+    --line:#D8E8F5;
+    --radius:22px;
+    --radius-sm:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    font-family:'Nunito',sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    -webkit-tap-highlight-color:transparent;
+  }
+  button{font-family:inherit;cursor:pointer;}
+  button:focus-visible, .stop:focus-visible, .tile:focus-visible{
+    outline:3px solid var(--purple);
+    outline-offset:2px;
+  }
+  h1,h2,h3{font-family:'Baloo 2',sans-serif;margin:0;}
+  #app{max-width:900px;margin:0 auto;padding:14px 14px 90px;}
+
+  /* HEADER */
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 4px 14px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-emoji{font-size:34px;line-height:1;}
+  .brand h1{font-size:19px;color:var(--ink);}
+  .brand p{margin:2px 0 0;font-size:12px;color:var(--ink-soft);font-weight:700;}
+  .hud{display:flex;gap:8px;}
+  .pill{
+    display:flex;align-items:center;gap:6px;
+    background:var(--card);border:2px solid var(--line);
+    border-radius:999px;padding:6px 12px;font-weight:800;font-size:15px;
+    font-family:'Baloo 2',sans-serif;color:var(--ink);
+  }
+  .pill.stars{color:var(--sun-dark);}
+  .pill.streak{color:var(--coral-dark);}
+
+  /* MAP */
+  .map-wrap{position:relative;margin-bottom:18px;}
+  #map{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    background:var(--card);border-radius:var(--radius);
+    padding:22px 10px 14px;
+    position:relative;
+    overflow-x:auto;
+    gap:4px;
+  }
+  #map::before{
+    content:"";position:absolute;left:8%;right:8%;top:38px;height:4px;
+    background:repeating-linear-gradient(to right, var(--line) 0 10px, transparent 10px 18px);
+    z-index:0;
+  }
+  .stop{
+    position:relative;z-index:1;
+    background:none;border:none;
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    width:88px;flex:0 0 auto;padding:4px;border-radius:14px;
+    transition:transform .15s ease;
+  }
+  .stop:not(:disabled):active{transform:scale(0.94);}
+  .stop-icon{
+    width:52px;height:52px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:26px;background:var(--bg-soft);border:3px solid var(--line);
+  }
+  .stop.open .stop-icon{border-color:var(--primary);background:#EAF2FF;}
+  .stop.active .stop-icon{border-color:var(--primary);background:var(--primary);animation:pulseRing 1.8s infinite;}
+  .stop.done .stop-icon{border-color:var(--leaf);background:#E7FBF3;}
+  .stop.locked .stop-icon{opacity:.45;}
+  .stop-label{font-family:'Baloo 2',sans-serif;font-size:12.5px;font-weight:700;color:var(--ink);text-align:center;}
+  .stop-sub{font-size:10.5px;color:var(--ink-soft);font-weight:700;text-align:center;}
+  .stop.locked .stop-label, .stop.locked .stop-sub{opacity:.45;}
+  #mascot{
+    position:absolute;top:-6px;font-size:30px;
+    transition:left .6s cubic-bezier(.4,1.4,.6,1);
+    animation:bounce 1.4s infinite ease-in-out;
+    transform:translateX(-50%);
+    z-index:2;
+  }
+
+  /* CONTENT CARD */
+  #content{background:var(--card);border-radius:var(--radius);padding:20px 18px 24px;min-height:340px;}
+  .progress-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+  .progress-track{flex:1;height:10px;border-radius:999px;background:var(--line);overflow:hidden;}
+  .progress-fill{height:100%;background:var(--leaf);border-radius:999px;transition:width .4s ease;}
+  .progress-label{font-size:12px;font-weight:800;color:var(--ink-soft);white-space:nowrap;}
+
+  .card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;animation:pop .25s ease;}
+  .step-emoji{font-size:52px;line-height:1;}
+  .prompt{font-size:20px;color:var(--ink);max-width:520px;}
+  .clue{color:var(--ink-soft);font-weight:700;font-size:14px;margin:0;}
+  .btn{border:none;border-radius:999px;padding:11px 20px;font-weight:800;font-family:'Baloo 2',sans-serif;font-size:15px;}
+  .btn-primary{background:var(--primary);color:#fff;}
+  .btn-primary:active{background:var(--primary-dark);}
+  .btn-ghost{background:var(--bg-soft);color:var(--primary-dark);border:2px solid var(--line);}
+  .btn-sun{background:var(--sun);color:#5c4200;}
+  .btn-lg{padding:14px 28px;font-size:17px;}
+
+  .options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:480px;margin-top:6px;}
+  @media (max-width:420px){.options-grid{grid-template-columns:1fr;}}
+  .opt-btn{
+    background:var(--bg-soft);border:2.5px solid var(--line);border-radius:var(--radius-sm);
+    padding:14px 10px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:16px;color:var(--ink);
+  }
+  .opt-btn.correct{background:#E7FBF3;border-color:var(--leaf);color:var(--leaf-dark);animation:pop .3s ease;}
+  .opt-btn.wrong{background:#FFECEC;border-color:var(--coral);color:var(--coral-dark);animation:shake .35s ease;}
+  .opt-btn:disabled{opacity:.55;}
+
+  .feedback{min-height:26px;font-weight:800;font-family:'Baloo 2',sans-serif;font-size:15px;}
+  .feedback.ok{color:var(--leaf-dark);}
+  .feedback.no{color:var(--coral-dark);}
+
+  canvas.trace-canvas{
+    touch-action:none;border-radius:var(--radius-sm);
+    border:3px dashed var(--line);background:var(--bg-soft);
+  }
+  .trace-controls{display:flex;gap:10px;margin-top:8px;}
+
+  .tiles-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:6px 0;}
+  .slot{
+    min-width:56px;height:52px;border-bottom:4px solid var(--primary);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Baloo 2',sans-serif;font-weight:800;font-size:22px;color:var(--ink);
+    background:var(--bg-soft);border-radius:10px 10px 0 0;
+  }
+  .tile{
+    background:var(--sun);border:none;border-radius:12px;padding:12px 16px;
+    font-family:'Baloo 2',sans-serif;font-weight:800;font-size:20px;color:#5c4200;
+  }
+  .tile:disabled{opacity:.3;}
+  .tile.wrongtile{animation:shake .35s ease;}
+
+  .match-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;width:100%;max-width:560px;}
+  .match-col{display:flex;flex-direction:column;gap:10px;}
+  .match-item{
+    background:var(--bg-soft);border:2.5px solid var(--line);border-radius:var(--radius-sm);
+    padding:12px 8px;font-weight:800;font-family:'Baloo 2',sans-serif;font-size:14.5px;color:var(--ink);
+  }
+  .match-item.selected{border-color:var(--primary);background:#EAF2FF;}
+  .match-item.matched{border-color:var(--leaf);background:#E7FBF3;color:var(--leaf-dark);opacity:.75;}
+  .match-item.wrongpick{animation:shake .35s ease;border-color:var(--coral);}
+
+  .scramble-tiles{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px 0;}
+  .answer-box{
+    min-height:56px;min-width:220px;border:3px dashed var(--line);border-radius:var(--radius-sm);
+    display:flex;align-items:center;justify-content:center;gap:4px;
+    font-family:'Baloo 2',sans-serif;font-weight:800;font-size:22px;letter-spacing:2px;color:var(--ink);
+    background:var(--bg-soft);padding:8px 14px;
+  }
+
+  .type-input{
+    font-family:'Baloo 2',sans-serif;font-size:22px;text-align:center;letter-spacing:2px;
+    padding:12px 16px;border-radius:var(--radius-sm);border:3px solid var(--line);
+    width:100%;max-width:340px;text-transform:uppercase;color:var(--ink);
+  }
+  .type-input:focus{outline:none;border-color:var(--primary);}
+  .flash-word{
+    font-family:'Baloo 2',sans-serif;font-weight:800;font-size:38px;color:var(--ink);
+    letter-spacing:2px;background:var(--bg-soft);border-radius:var(--radius-sm);
+    padding:18px 26px;
+  }
+
+  .level-complete{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;padding:16px 0;}
+  .trophy{font-size:64px;}
+  .stars-earned{font-family:'Baloo 2',sans-serif;font-size:22px;color:var(--sun-dark);font-weight:800;}
+
+  .intro{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;}
+  .intro .brand-emoji{font-size:64px;}
+  .intro p{color:var(--ink-soft);font-weight:700;max-width:480px;line-height:1.5;}
+
+  .speech-bubble{
+    background:var(--bg-soft);border-radius:var(--radius-sm);padding:10px 16px;
+    font-weight:700;color:var(--ink);font-size:14px;position:relative;max-width:420px;
+  }
+
+  #confetti-layer{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:50;}
+  .confetti-piece{position:absolute;top:-10px;width:9px;height:14px;border-radius:2px;animation:confettiFall 1.8s ease-in forwards;}
+
+  .floater{
+    position:fixed;right:16px;bottom:16px;z-index:40;
+    background:var(--purple);color:#fff;border:none;border-radius:999px;
+    padding:12px 18px;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:13.5px;
+    box-shadow:0 4px 14px rgba(142,107,255,.35);
+  }
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(22,33,62,.55);
+    display:flex;align-items:center;justify-content:center;z-index:60;padding:18px;
+  }
+  .modal-card{
+    background:var(--card);border-radius:var(--radius);padding:20px;max-width:420px;width:100%;
+  }
+  .modal-card h3{font-size:16px;margin-bottom:10px;}
+  .modal-card textarea{
+    width:100%;min-height:90px;border:2px solid var(--line);border-radius:var(--radius-sm);
+    padding:10px;font-family:'Nunito',sans-serif;font-size:14px;color:var(--ink);resize:vertical;
+  }
+  .modal-actions{display:flex;gap:10px;margin-top:12px;}
+  .modal-hint{font-size:12.5px;color:var(--ink-soft);font-weight:700;margin:8px 0 0;min-height:16px;}
+
+  @keyframes pop{0%{transform:scale(.85);opacity:0;}100%{transform:scale(1);opacity:1;}}
+  @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+  @keyframes bounce{0%,100%{transform:translateY(0) translateX(-50%);}50%{transform:translateY(-8px) translateX(-50%);}}
+  @keyframes pulseRing{0%{box-shadow:0 0 0 0 rgba(47,128,237,.55);}70%{box-shadow:0 0 0 14px rgba(47,128,237,0);}100%{box-shadow:0 0 0 0 rgba(47,128,237,0);}}
+  @keyframes confettiFall{0%{transform:translateY(-20px) rotate(0deg);opacity:1;}100%{transform:translateY(100vh) rotate(360deg);opacity:0;}}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
+  }
+</style>
+</head>
+<body>
+<div id="confetti-layer"></div>
+<div id="app">
+  <header>
+    <div class="brand">
+      <div class="brand-emoji">🦁</div>
+      <div>
+        <h1>El Gran Viaje de Leo</h1>
+        <p>De Dunedin a España — ¡aprende a leer y escribir!</p>
+      </div>
+    </div>
+    <div class="hud">
+      <div class="pill stars">⭐ <span id="stars-count">0</span></div>
+      <div class="pill streak">🔥 <span id="streak-count">0</span></div>
+    </div>
+  </header>
+
+  <div class="map-wrap">
+    <div id="map"></div>
+    <div id="mascot">🦁</div>
+  </div>
+
+  <div id="content"></div>
+</div>
+<button class="floater" id="ask-more-btn">💡 Pide más ejercicios</button>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------------- STATE ---------------- */
+const state = {
+  stars:0, streak:0, bestStreak:0,
+  maxUnlocked:1, current:1,
+  levelDone:{1:false,2:false,3:false,4:false,5:false},
+  levelStars:{1:0,2:0,3:0,4:0,5:0}
+};
+
+const STOPS = [
+  {id:1, icon:'🥝', label:'Dunedin', sub:'Vocales'},
+  {id:2, icon:'✈️', label:'De viaje', sub:'Sílabas'},
+  {id:3, icon:'🏡', label:'Treviño', sub:'Mi familia'},
+  {id:4, icon:'🏖️', label:'Vera Playa', sub:'Frases'},
+  {id:5, icon:'⚽', label:'Mendizorrotza', sub:'Escritura'}
+];
+
+/* ---------------- HELPERS ---------------- */
+function $(sel){ return document.querySelector(sel); }
+function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function normalize(str){
+  return String(str).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+}
+function speak(text){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='es-ES'; u.rate=0.82; u.pitch=1.05;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+let audioCtx=null;
+function playTone(type){
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    const t=audioCtx.currentTime;
+    if(type==='correct'){
+      o.type='sine'; o.frequency.setValueAtTime(523.25,t); o.frequency.exponentialRampToValueAtTime(783.99,t+0.15);
+      g.gain.setValueAtTime(0.16,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.32);
+      o.start(t); o.stop(t+0.33);
+    } else if(type==='wrong'){
+      o.type='sine'; o.frequency.setValueAtTime(210,t);
+      g.gain.setValueAtTime(0.12,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.25);
+      o.start(t); o.stop(t+0.26);
+    } else {
+      o.type='sine'; o.frequency.setValueAtTime(392,t); o.frequency.exponentialRampToValueAtTime(659.25,t+0.4);
+      g.gain.setValueAtTime(0.18,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.6);
+      o.start(t); o.stop(t+0.6);
+    }
+  }catch(e){}
+}
+function confettiBurst(n){
+  n = n || 30;
+  const colors=['#2F80ED','#FFC93C','#FF6B6B','#33C481','#8E6BFF'];
+  const layer = $('#confetti-layer');
+  for(let i=0;i<n;i++){
+    const p=document.createElement('div');
+    p.className='confetti-piece';
+    p.style.left=(Math.random()*100)+'%';
+    p.style.background=colors[Math.floor(Math.random()*colors.length)];
+    p.style.animationDelay=(Math.random()*0.35)+'s';
+    layer.appendChild(p);
+    setTimeout(()=>p.remove(), 2400);
+  }
+}
+function addStar(){
+  state.stars+=1; state.streak+=1; state.bestStreak=Math.max(state.bestStreak,state.streak);
+  state.levelStars[state.current] = (state.levelStars[state.current]||0)+1;
+  playTone('correct'); updateHUD();
+}
+function missAnswer(){ state.streak=0; playTone('wrong'); updateHUD(); }
+function updateHUD(){ $('#stars-count').textContent=state.stars; $('#streak-count').textContent=state.streak; }
+
+/* ---------------- MAP ---------------- */
+function renderMap(){
+  const map = $('#map');
+  map.innerHTML='';
+  STOPS.forEach((s,i)=>{
+    const n=i+1;
+    const btn=document.createElement('button');
+    btn.className='stop';
+    let cls='locked';
+    if(state.levelDone[n]) cls='done';
+    else if(n===state.current) cls='active';
+    else if(n<=state.maxUnlocked) cls='open';
+    btn.classList.add(cls);
+    btn.disabled = n>state.maxUnlocked;
+    btn.innerHTML = '<span class="stop-icon">'+(state.levelDone[n] ? '✅' : s.icon)+'</span>'+
+                    '<span class="stop-label">'+s.label+'</span>'+
+                    '<span class="stop-sub">'+s.sub+'</span>';
+    btn.addEventListener('click', function(){
+      if(n<=state.maxUnlocked){ startLevel(n); }
+    });
+    map.appendChild(btn);
+  });
+  const mascot = $('#mascot');
+  const pct = ((state.current-1)/(STOPS.length-1))*100;
+  mascot.style.left = pct + '%';
+}
+
+/* ---------------- DATA ---------------- */
+const VOWELS = [
+  {letter:'A', familyWord:'AIMEE', familyClue:'la mamá de Leo 👩', genericWord:'AVIÓN', genericEmoji:'✈️'},
+  {letter:'E', familyWord:'ELENA', familyClue:'la tía de Leo 👩', genericWord:'ESTRELLA', genericEmoji:'⭐'},
+  {letter:'I', familyWord:'IÑIGO', familyClue:'el tío de Leo 👨', genericWord:'ISLA', genericEmoji:'🏝️'},
+  {letter:'O', familyWord:'OSO', familyClue:'un animal 🐻', genericWord:'OCÉANO', genericEmoji:'🌊'},
+  {letter:'U', familyWord:'UVA', familyClue:'una fruta 🍇', genericWord:'UNO', genericEmoji:'1️⃣'}
+];
+
+const SYLLABLE_WORDS = [
+  {word:'LEO', tiles:['LE','O'], clue:'¡Eres tú! 🦁'},
+  {word:'TIO', display:'TÍO', tiles:['TI','O'], clue:'el hermano de mamá o papá 👨'},
+  {word:'TIA', display:'TÍA', tiles:['TI','A'], clue:'la hermana de mamá o papá 👩'},
+  {word:'MAMA', display:'MAMÁ', tiles:['MA','MA'], clue:'Aimee es tu ___ 👩'},
+  {word:'PAPA', display:'PAPÁ', tiles:['PA','PA'], clue:'Diego es tu ___ 👨'},
+  {word:'PATO', tiles:['PA','TO'], clue:'un animal de granja 🦆'},
+  {word:'MESA', tiles:['ME','SA'], clue:'un mueble 🪑'},
+  {word:'NENE', tiles:['NE','NE'], clue:'el abuelo de Leo 👴'},
+  {word:'TITA', tiles:['TI','TA'], clue:'la abuela de Leo 👵'},
+  {word:'DIEGO', tiles:['DI','E','GO'], clue:'el papá de Leo 👨'}
+];
+const ALL_TILE_BANK = (function(){
+  const s=new Set();
+  SYLLABLE_WORDS.forEach(w=>w.tiles.forEach(t=>s.add(t)));
+  return Array.from(s);
+})();
+
+const MATCH_SET_1 = [
+  ['LEO','Tú mismo 🦁'],
+  ['SERGIO','Tu hermano 👦'],
+  ['DIEGO','Tu papá 👨'],
+  ['AIMEE','Tu mamá 👩'],
+  ['IÑIGO','Tu tío 👨']
+];
+const MATCH_SET_2 = [
+  ['ELENA','Tu tía 👩'],
+  ['DUNEDIN','Tu ciudad en NZ 🥝'],
+  ['TREVIÑO','Tu pueblo en España 🏡'],
+  ['ALAVÉS','Tu equipo de fútbol ⚽'],
+  ['VERA PLAYA','Tu playa en Almería 🏖️']
+];
+const MATCH_SET_3 = [
+  ['NENE','Tu abuelo 👴'],
+  ['TITA','Tu abuela 👵'],
+  ['ARLENY','Tu tía 👩'],
+  ['DANIEL','Tu tío 👨']
+];
+const SCRAMBLE_WORDS = [
+  {word:'SERGIO', clue:'Tu hermano', emoji:'👦'},
+  {word:'TAO', clue:'Tu primo', emoji:'🧒'},
+  {word:'ZABI', clue:'Tu primo', emoji:'🧒'},
+  {word:'ERIC', clue:'Tu primo', emoji:'🧒'},
+  {word:'ARIADNA', clue:'Tu prima', emoji:'👧'},
+  {word:'SHAKTI', clue:'Tu prima', emoji:'👧'}
+];
+
+const SENTENCES = [
+  {text:'Leo vive en Dunedin, Nueva Zelanda.', q:'¿Dónde vive Leo ahora?', options:['Dunedin','Treviño','Vera Playa'], correct:0},
+  {text:'Sergio es el hermano de Leo.', q:'¿Quién es Sergio?', options:['Su tío','Su hermano','Su primo'], correct:1},
+  {text:'Diego es el papá de Leo y Sergio.', q:'¿Cómo se llama el papá?', options:['Daniel','Iñigo','Diego'], correct:2},
+  {text:'Aimee es la mamá de Leo.', q:'¿Cómo se llama la mamá de Leo?', options:['Aimee','Leire','Elena'], correct:0},
+  {text:'Nene y Tita son los abuelos de Leo.', q:'¿Quiénes son los abuelos de Leo?', options:['Nene y Tita','Sergio y Diego','Elena y Leire'], correct:0},
+  {text:'El año que viene, la familia se muda a España.', q:'¿Ya vive Leo en España?', options:['Sí','No, todavía no','No lo sabemos'], correct:1},
+  {text:'A Leo le gusta el Deportivo Alavés.', q:'¿Qué equipo le gusta a Leo?', options:['Real Madrid','Barcelona','Deportivo Alavés'], correct:2},
+  {text:'En verano, la familia va a Vera Playa, en Almería.', q:'¿A dónde va la familia en verano?', options:['Vera Playa','Dunedin','Treviño'], correct:0},
+  {text:'Iñigo, Arleny, Daniel, Leire y Elena son los tíos de Leo.', q:'¿Cuántos tíos se nombran en la frase?', options:['3','5','2'], correct:1}
+];
+
+const DICTATE = [
+  {answer:'LEO', display:'LEO', emoji:'🦁'},
+  {answer:'MAMA', display:'MAMÁ', emoji:'👩'},
+  {answer:'PAPA', display:'PAPÁ', emoji:'👨'},
+  {answer:'SERGIO', display:'SERGIO', emoji:'👦'},
+  {answer:'NENE', display:'NENE', emoji:'👴'},
+  {answer:'TITA', display:'TITA', emoji:'👵'},
+  {answer:'DUNEDIN', display:'DUNEDIN', emoji:'🥝'},
+  {answer:'ESPANA', display:'ESPAÑA', emoji:'🇪🇸'},
+  {answer:'ALAVES', display:'ALAVÉS', emoji:'⚽'},
+  {answer:'LEO VIVE EN ESPANA', display:'LEO VIVE EN ESPAÑA', emoji:'✏️'}
+];
+
+/* ---------------- STEP BUILDERS ---------------- */
+function buildStepsForLevel(n){
+  if(n===1){
+    const steps=[];
+    VOWELS.forEach(v=>{
+      steps.push({type:'trace', letter:v.letter});
+      const others = VOWELS.filter(o=>o.letter!==v.letter);
+      const pool = shuffle(others).slice(0,2).map(o=>o.familyWord);
+      const opts = shuffle([v.familyWord, ...pool]);
+      steps.push({
+        type:'choice',
+        emoji:'🔤',
+        prompt:'¿Qué palabra empieza con la vocal "'+v.letter+'"?',
+        clue: v.familyWord+' es '+v.familyClue,
+        speakText: v.letter,
+        options: opts,
+        correct: v.familyWord
+      });
+    });
+    return steps;
+  }
+  if(n===2){
+    return SYLLABLE_WORDS.map(w=>({type:'tiles', word:w}));
+  }
+  if(n===3){
+    const steps=[{type:'match', pairs:MATCH_SET_1}, {type:'match', pairs:MATCH_SET_2}, {type:'match', pairs:MATCH_SET_3}];
+    SCRAMBLE_WORDS.forEach(w=> steps.push({type:'scramble', data:w}));
+    return steps;
+  }
+  if(n===4){
+    return SENTENCES.map(s=>({type:'sentence', data:s}));
+  }
+  if(n===5){
+    return DICTATE.map(d=>({type:'dictate', data:d}));
+  }
+  return [];
+}
+
+/* ---------------- LEVEL RUNNER ---------------- */
+function startLevel(n){
+  state.current = n;
+  renderMap();
+  const steps = buildStepsForLevel(n);
+  let idx = 0;
+  render();
+
+  function progressBar(){
+    return '<div class="progress-row">'+
+      '<div class="progress-label">Paso '+(idx+1)+' / '+steps.length+'</div>'+
+      '<div class="progress-track"><div class="progress-fill" style="width:'+Math.round(((idx)/steps.length)*100)+'%"></div></div>'+
+      '</div>';
+  }
+
+  function next(){
+    idx++;
+    if(idx>=steps.length){ finishLevel(); } else { render(); }
+  }
+
+  function render(){
+    const content = $('#content');
+    content.innerHTML = progressBar() + '<div id="step-host"></div>';
+    const host = $('#step-host');
+    const step = steps[idx];
+    if(step.type==='trace') renderTrace(host, step, next);
+    else if(step.type==='choice') renderChoice(host, step, next);
+    else if(step.type==='tiles') renderTiles(host, step, next);
+    else if(step.type==='match') renderMatch(host, step, next);
+    else if(step.type==='scramble') renderScramble(host, step, next);
+    else if(step.type==='sentence') renderSentence(host, step, next);
+    else if(step.type==='dictate') renderDictate(host, step, next);
+  }
+
+  function finishLevel(){
+    state.levelDone[n]=true;
+    state.maxUnlocked = Math.max(state.maxUnlocked, Math.min(n+1,5));
+    renderMap();
+    confettiBurst(24);
+    const content = $('#content');
+    const earned = state.levelStars[n]||0;
+    content.innerHTML =
+      '<div class="level-complete">'+
+        '<div class="trophy">'+(n<5?'🏅':'🏆')+'</div>'+
+        '<h2>¡Parada completada!</h2>'+
+        '<div class="stars-earned">⭐ '+earned+' estrellas en esta parada</div>'+
+        '<p class="clue">'+STOPS[n-1].sub+' — ¡'+STOPS[n-1].label+' superado!</p>'+
+        '<button class="btn btn-primary btn-lg" id="continue-btn">'+(n<5?'Siguiente parada ➡️':'Ver mi diploma 🏆')+'</button>'+
+      '</div>';
+    $('#continue-btn').addEventListener('click', function(){
+      if(n<5){ startLevel(n+1); } else { renderFinalScreen(); }
+    });
+  }
+}
+
+/* ---------------- STEP: TRACE ---------------- */
+function renderTrace(host, step, next){
+  host.innerHTML =
+    '<div class="card">'+
+      '<div class="step-emoji">✏️</div>'+
+      '<h3 class="prompt">Traza la letra "'+step.letter.toLowerCase()+'"</h3>'+
+      '<canvas class="trace-canvas" id="trace-canvas" width="260" height="260"></canvas>'+
+      '<div class="trace-controls">'+
+        '<button class="btn btn-ghost" id="hear-letter">🔊 Escuchar</button>'+
+        '<button class="btn btn-ghost" id="clear-canvas">🧹 Borrar</button>'+
+      '</div>'+
+      '<button class="btn btn-primary btn-lg" id="done-trace">¡Ya la escribí! ➡️</button>'+
+    '</div>';
+
+  const canvas = $('#trace-canvas');
+  const ctx = canvas.getContext('2d');
+  function drawGuide(){
+    ctx.clearRect(0,0,260,260);
+    ctx.fillStyle = '#D3E6F5';
+    ctx.font = '800 190px "Baloo 2", sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(step.letter.toLowerCase(), 130, 148);
+  }
+  drawGuide();
+  ctx.strokeStyle = '#1C5FC4';
+  ctx.lineWidth = 10; ctx.lineCap='round'; ctx.lineJoin='round';
+
+  let drawing=false;
+  function pos(e){
+    const r = canvas.getBoundingClientRect();
+    const cx = (e.touches? e.touches[0].clientX : e.clientX) - r.left;
+    const cy = (e.touches? e.touches[0].clientY : e.clientY) - r.top;
+    return {x:cx*(canvas.width/r.width), y:cy*(canvas.height/r.height)};
+  }
+  function start(e){ drawing=true; const p=pos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); e.preventDefault(); }
+  function move(e){ if(!drawing) return; const p=pos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); e.preventDefault(); }
+  function end(){ drawing=false; }
+  canvas.addEventListener('pointerdown', start);
+  canvas.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', end);
+
+  $('#hear-letter').addEventListener('click', ()=> speak(step.letter.toLowerCase()));
+  $('#clear-canvas').addEventListener('click', drawGuide);
+  $('#done-trace').addEventListener('click', function(){ addStar(); next(); });
+}
+
+/* ---------------- STEP: CHOICE ---------------- */
+function renderChoice(host, step, next){
+  host.innerHTML =
+    '<div class="card">'+
+      '<div class="step-emoji">'+(step.emoji||'❓')+'</div>'+
+      '<h3 class="prompt">'+step.prompt+'</h3>'+
+      (step.clue? '<p class="clue">'+step.clue+'</p>' : '')+
+      (step.speakText? '<button class="btn btn-ghost" id="hear-btn">🔊 Escuchar</button>' : '')+
+      '<div class="options-grid" id="opts"></div>'+
+      '<div class="feedback" id="fb"></div>'+
+    '</div>';
+  if(step.speakText) $('#hear-btn').addEventListener('click', ()=> speak(step.speakText));
+
+  let answered=false, firstTry=true;
+  const grid = $('#opts');
+  step.options.forEach(opt=>{
+    const b=document.createElement('button');
+    b.className='opt-btn'; b.textContent=opt;
+    b.addEventListener('click', function(){
+      if(answered) return;
+      if(opt===step.correct){
+        answered=true;
+        b.classList.add('correct');
+        $('#fb').textContent='¡Muy bien! 🎉'; $('#fb').className='feedback ok';
+        if(firstTry) addStar(); else updateHUD();
+        speak(opt);
+        Array.from(grid.children).forEach(c=>c.disabled=true);
+        setTimeout(next, 900);
+      } else {
+        firstTry=false;
+        b.classList.add('wrong'); b.disabled=true;
+        missAnswer();
+        $('#fb').textContent='¡Casi! Intenta otra vez'; $('#fb').className='feedback no';
+      }
+    });
+    grid.appendChild(b);
+  });
+}
+
+/* ---------------- STEP: TILES (syllables) ---------------- */
+function renderTiles(host, step, next){
+  const w = step.word;
+  const target = w.tiles;
+  const others = ALL_TILE_BANK.filter(t=> !target.includes(t));
+  const distractors = shuffle(others).slice(0,2);
+  const pool = shuffle(target.concat(distractors));
+
+  host.innerHTML =
+    '<div class="card">'+
+      '<div class="step-emoji">🧩</div>'+
+      '<h3 class="prompt">Forma la palabra</h3>'+
+      '<p class="clue">'+w.clue+'</p>'+
+      '<div class="tiles-row" id="slots"></div>'+
+      '<div class="tiles-row" id="pool"></div>'+
+      '<div class="feedback" id="fb"></div>'+
+    '</div>';
+
+  const slotsEl = $('#slots'), poolEl = $('#pool'), fb = $('#fb');
+  const filled = [];
+  target.forEach(()=> {
+    const s=document.createElement('div'); s.className='slot'; slotsEl.appendChild(s);
+  });
+
+  function refreshSlots(){
+    Array.from(slotsEl.children).forEach((s,i)=>{ s.textContent = filled[i]||''; });
+  }
+
+  pool.forEach((tileText, i)=>{
+    const b=document.createElement('button');
+    b.className='tile'; b.textContent=tileText;
+    b.addEventListener('click', function(){
+      if(filled.length>=target.length || b.disabled) return;
+      filled.push(tileText);
+      b.disabled=true;
+      refreshSlots();
+      if(filled.length===target.length){
+        const joined = filled.join('');
+        const correctJoined = target.join('');
+        if(joined===correctJoined){
+          fb.textContent='¡Perfecto! 🎉'; fb.className='feedback ok';
+          addStar();
+          speak(w.display||w.word);
+          setTimeout(next, 1000);
+        } else {
+          fb.textContent='¡Casi! Vuelve a intentar'; fb.className='feedback no';
+          missAnswer();
+          setTimeout(function(){
+            filled.length=0; refreshSlots();
+            Array.from(poolEl.children).forEach(c=>c.disabled=false);
+            fb.textContent='';
+          }, 900);
+        }
+      }
+    });
+    poolEl.appendChild(b);
+  });
+}
+
+/* ---------------- STEP: MATCH ---------------- */
+function renderMatch(host, step, next){
+  const pairs = step.pairs;
+  const left = shuffle(pairs.map(p=>p[0]));
+  const right = shuffle(pairs.map(p=>p[1]));
+  const map = {}; pairs.forEach(p=> map[p[0]]=p[1]);
+
+  host.innerHTML =
+    '<div class="card">'+
+      '<div class="step-emoji">🔗</div>'+
+      '<h3 class="prompt">Une cada nombre con quién es</h3>'+
+      '<div class="match-grid">'+
+        '<div class="match-col" id="col-left"></div>'+
+        '<div class="match-col" id="col-right"></div>'+
+      '</div>'+
+      '<div class="feedback" id="fb"></div>'+
+    '</div>';
+
+  const colL = $('#col-left'), colR = $('#col-right'), fb=$('#fb');
+  let selectedLeft=null, matchedCount=0;
+
+  left.forEach(word=>{
+    const b=document.createElement('button');
+    b.className='match-item'; b.textContent=word; b.dataset.val=word;
+    b.addEventListener('click', function(){
+      if(b.classList.contains('matched')) return;
+      Array.from(colL.children).forEach(c=>c.classList.remove('selected'));
+      b.classList.add('selected');
+      selectedLeft = word;
+    });
+    colL.appendChild(b);
+  });
+  right.forEach(role=>{
+    const b=document.createElement('button');
+    b.className='match-item'; b.textContent=role; b.dataset.val=role;
+    b.addEventListener('click', function(){
+      if(!selectedLeft || b.classList.contains('matched')) return;
+      const leftBtn = Array.from(colL.children).find(c=>c.dataset.val===selectedLeft);
+      if(map[selectedLeft]===role){
+        leftBtn.classList.add('matched'); leftBtn.classList.remove('selected');
+        b.classList.add('matched');
+        matchedCount++;
+        addStar();
+        speak(selectedLeft);
+        selectedLeft=null;
+        if(matchedCount===pairs.length){
+          fb.textContent='¡Todas emparejadas! 🎉'; fb.className='feedback ok';
+          setTimeout(next, 900);
+        }
+      } else {
+        b.classList.add('wrongpick'); leftBtn.classList.add('wrongpick');
+        missAnswer();
+        fb.textContent='Prueba otra pareja'; fb.className='feedback no';
+        setTimeout(()=>{ b.classList.remove('wrongpick'); leftBtn.classList.remove('wrongpick'); }, 400);
+      }
+    });
+    colR.appendChild(b);
+  });
+}
+
+/* ---------------- STEP: SCRAMBLE ---------------- */
+function renderScramble(host, step, next){
+  const d = step.data;
+  const letters = shuffle(d.word.split(''));
+  host.innerHTML =
+    '<div class="card">'+
+      '<div class="step-emoji">'+d.emoji+'</div>'+
+      '<h3 class="prompt">Ordena las letras: '+d.clue+'</h3>'+
+      '<div class="answer-box" id="answer"></div>'+
+      '<div class="scramble-tiles" id="letterpool"></div>'+
+      '<div class="trace-controls"><button class="btn btn-ghost" id="undo-btn">↩️ Borrar última</button></div>'+
+      '<div class="feedback" id="fb"></div>'+
+    '</div>';
+
+  const answerEl = $('#answer'), poolEl = $('#letterpool'), fb=$('#fb');
+  const chosen=[];
+  function refresh(){ answerEl.textContent = chosen.join(''); }
+
+  letters.forEach(ch=>{
+    const b=document.createElement('button');
+    b.className='tile'; b.textContent=ch;
+    b.addEventListener('click', function(){
+      if(b.disabled || chosen.length>=d.word.length) return;
+      chosen.push(ch); b.disabled=true; refresh();
+      if(chosen.length===d.word.length){
+        if(chosen.join('')===d.word){
+          fb.textContent='¡Lo lograste! 🎉'; fb.className='feedback ok';
+          addStar(); speak(d.word);
+          setTimeout(next, 1000);
+        } else {
+          fb.textContent='Casi... ¡inténtalo de nuevo!'; fb.className='feedback no';
+          missAnswer();
+          setTimeout(function(){
+            chosen.length=0; refresh();
+            Array.from(poolEl.children).forEach(c=>c.disabled=false);
+            fb.textContent='';
+          }, 900);
+        }
+      }
+    });
+    poolEl.appendChild(b);
+  });
+  $('#undo-btn').addEventListener('click', function(){
+    if(!chosen.length) return;
+    const last = chosen.pop(); refresh();
+    const btn = Array.from(poolEl.children).find(c=>c.disabled && c.textContent===last);
+    if(btn) btn.disabled=false;
+  });
+}
+
+/* ---------------- STEP: SENTENCE ---------------- */
+function renderSentence(host, step, next){
+  const d = step.data;
+  const opts = d.options;
+  host.innerHTML =
+    '<div class="card">'+
+      '<div class="step-emoji">📖</div>'+
+      '<h3 class="prompt">"'+d.text+'"</h3>'+
+      '<button class="btn btn-ghost" id="hear-sentence">🔊 Escuchar la frase</button>'+
+      '<p class="clue">'+d.q+'</p>'+
+      '<div class="options-grid" id="opts"></div>'+
+      '<div class="feedback" id="fb"></div>'+
+    '</div>';
+  $('#hear-sentence').addEventListener('click', ()=> speak(d.text));
+
+  let answered=false, firstTry=true;
+  const grid=$('#opts'), fb=$('#fb');
+  opts.forEach((opt,i)=>{
+    const b=document.createElement('button');
+    b.className='opt-btn'; b.textContent=opt;
+    b.addEventListener('click', function(){
+      if(answered) return;
+      if(i===d.correct){
+        answered=true;
+        b.classList.add('correct');
+        fb.textContent='¡Correcto! 🎉'; fb.className='feedback ok';
+        if(firstTry) addStar(); else updateHUD();
+        Array.from(grid.children).forEach(c=>c.disabled=true);
+        setTimeout(next, 900);
+      } else {
+        firstTry=false;
+        b.classList.add('wrong'); b.disabled=true;
+        missAnswer();
+        fb.textContent='Vuelve a leer la frase'; fb.className='feedback no';
+      }
+    });
+    grid.appendChild(b);
+  });
+}
+
+/* ---------------- STEP: DICTATE ---------------- */
+function renderDictate(host, step, next){
+  const d = step.data;
+  host.innerHTML =
+    '<div class="card">'+
+      '<div class="step-emoji">'+d.emoji+'</div>'+
+      '<h3 class="prompt">Mira, escucha... ¡y luego escríbela!</h3>'+
+      '<div class="flash-word" id="flashword">'+d.display+'</div>'+
+      '<div id="writephase" style="display:none;">'+
+        '<button class="btn btn-ghost" id="hear-again">🔊 Escuchar otra vez</button>'+
+        '<input class="type-input" id="type-in" placeholder="Escribe aquí" autocomplete="off" autocapitalize="characters">'+
+        '<button class="btn btn-primary btn-lg" id="check-btn">Comprobar ✅</button>'+
+      '</div>'+
+      '<div class="feedback" id="fb"></div>'+
+    '</div>';
+
+  speak(d.display);
+  setTimeout(function(){
+    $('#flashword').style.display='none';
+    const wp = $('#writephase');
+    wp.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:10px;';
+    $('#hear-again').addEventListener('click', ()=> speak(d.display));
+    const input = $('#type-in');
+    input.focus();
+    const fb = $('#fb');
+    let firstTry=true;
+    function check(){
+      const val = input.value.trim();
+      if(!val) return;
+      if(normalize(val)===normalize(d.answer)){
+        fb.textContent='¡Perfecto! Se escribe: '+d.display+' 🎉'; fb.className='feedback ok';
+        if(firstTry) addStar(); else updateHUD();
+        input.disabled=true;
+        setTimeout(next, 1100);
+      } else {
+        firstTry=false;
+        fb.textContent='Casi... ¡vuelve a intentarlo!'; fb.className='feedback no';
+        missAnswer();
+        input.select();
+      }
+    }
+    $('#check-btn').addEventListener('click', check);
+    input.addEventListener('keydown', function(e){ if(e.key==='Enter') check(); });
+  }, 2600);
+}
+
+/* ---------------- FINAL SCREEN ---------------- */
+function renderFinalScreen(){
+  confettiBurst(50);
+  playTone('ding');
+  const content = $('#content');
+  content.innerHTML =
+    '<div class="level-complete">'+
+      '<div class="trophy">🏆</div>'+
+      '<h2>¡Leo, eres un campeón del español!</h2>'+
+      '<div class="stars-earned">⭐ '+state.stars+' estrellas en total</div>'+
+      '<p class="clue">🦁⚽ Del kiwi de Dunedin al escudo del Alavés — ¡ya lees y escribes como todo un jugador de Mendizorrotza!</p>'+
+      '<div class="speech-bubble">Racha máxima: 🔥 '+state.bestStreak+' respuestas seguidas</div>'+
+      '<button class="btn btn-sun btn-lg" id="replay-btn">🔁 Jugar otra vez</button>'+
+    '</div>';
+  $('#replay-btn').addEventListener('click', function(){
+    state.stars=0; state.streak=0; state.bestStreak=0; state.maxUnlocked=1; state.current=1;
+    state.levelDone={1:false,2:false,3:false,4:false,5:false};
+    state.levelStars={1:0,2:0,3:0,4:0,5:0};
+    updateHUD(); renderMap(); renderIntro();
+  });
+}
+
+/* ---------------- INTRO ---------------- */
+function renderIntro(){
+  const content = $('#content');
+  content.innerHTML =
+    '<div class="intro">'+
+      '<div class="brand-emoji">🦁🥝➡️🇪🇸</div>'+
+      '<h2>¡Hola, Leo! Bienvenido a tu gran viaje</h2>'+
+      '<p>Vas a viajar por 5 paradas: Dunedin, un avión, Treviño, Vera Playa y el estadio de Mendizorrotza. En cada parada aprenderás a leer y escribir un poquito más de español, con Nene, Tita y toda tu familia. ¡Gana estrellas ⭐ y no pierdas tu racha 🔥!</p>'+
+      '<button class="btn btn-primary btn-lg" id="start-btn">¡Empezar la aventura! 🚀</button>'+
+    '</div>';
+  $('#start-btn').addEventListener('click', ()=> startLevel(1));
+}
+
+/* ---------------- ASK MORE (sendPrompt with fallback) ---------------- */
+function showAskMoreModal(text){
+  const old = document.querySelector('.modal-overlay');
+  if(old) old.remove();
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML =
+    '<div class="modal-card">'+
+      '<h3>Copia este mensaje y pégalo en el chat</h3>'+
+      '<textarea id="prompt-text" readonly>'+text+'</textarea>'+
+      '<div class="modal-actions">'+
+        '<button class="btn btn-primary" id="copy-prompt-btn">📋 Copiar</button>'+
+        '<button class="btn btn-ghost" id="close-modal-btn">Cerrar</button>'+
+      '</div>'+
+      '<p class="modal-hint" id="copy-hint"></p>'+
+    '</div>';
+  document.body.appendChild(overlay);
+  const ta = overlay.querySelector('#prompt-text');
+  const hint = overlay.querySelector('#copy-hint');
+  overlay.querySelector('#copy-prompt-btn').addEventListener('click', function(){
+    let copied = false;
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text);
+        copied = true;
+      }
+    }catch(e){}
+    if(!copied){
+      try{ ta.focus(); ta.select(); document.execCommand('copy'); copied = true; }catch(e){}
+    }
+    hint.textContent = copied ? '¡Copiado! Pégalo en el chat con Claude.' : 'Selecciona el texto de arriba y cópialo con Ctrl/Cmd+C.';
+  });
+  overlay.querySelector('#close-modal-btn').addEventListener('click', ()=> overlay.remove());
+  overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+}
+
+$('#ask-more-btn').addEventListener('click', function(){
+  const promptText = 'Dame más palabras, sílabas y frases cortas para que Leo (6 años) siga practicando lectura y escritura en español, usando a su familia (Sergio, Diego, Aimee, Nene, Tita, tíos y primos) y lugares como Dunedin, Treviño, Vera Playa y el Alavés.';
+  let bridged = false;
+  try{
+    if(typeof sendPrompt === 'function'){
+      sendPrompt(promptText);
+      bridged = true;
+    }
+  }catch(e){ bridged = false; }
+  if(!bridged){ showAskMoreModal(promptText); }
+});
+
+/* ---------------- INIT ---------------- */
+updateHUD();
+renderMap();
+renderIntro();
+
+})();
+</script>
+</body>
+</html>
+
